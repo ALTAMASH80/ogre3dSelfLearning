@@ -230,11 +230,12 @@ private:
         mCameraGoal = mCameraPivot->createChildSceneNode(Vector3(0, 0, 15));
         // this is where the camera actually is
         mCameraNode = cam->getParentSceneNode();
-        mCameraNode->setPosition(mCameraPivot->getPosition() + mCameraGoal->getPosition());
+        mCameraNode->setPosition(Vector3(0, 0, 340));
+        mCameraNode->pitch(Degree(90));
 
         mCameraPivot->setFixedYawAxis(true);
         mCameraGoal->setFixedYawAxis(true);
-        mCameraNode->setFixedYawAxis(true);
+        mCameraNode->setFixedYawAxis(true/*, Vector3::UNIT_Z*/);
 
         // our model is quite small, so reduce the clipping planes
         cam->setNearClipDistance(1);

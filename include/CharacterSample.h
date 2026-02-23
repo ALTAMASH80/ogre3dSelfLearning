@@ -31,8 +31,48 @@ public:
 
 protected:
 
+    void createSceneManager() override
+    {
+        mSceneMgr = mRoot->createSceneManager("BspSceneManager");   // the BSP scene manager is required for this sample
+//#ifdef INCLUDE_RTSHADER_SYSTEM
+        mShaderGenerator->addSceneManager(mSceneMgr);
+//#endif
+        if(auto overlaySystem = mContext->getOverlaySystem())
+            mSceneMgr->addRenderQueueListener(overlaySystem);
+    }
+
+    void loadResources()
+    {
+        /* NOTE: The browser initialises everything at the beginning already, so we use a 0 init proportion.
+           If you're not compiling this sample for use with the browser, then leave the init proportion at 0.7. */
+//        mTrayMgr->showLoadingBar(1, 1, 0);
+
+        // associate the world geometry with the world resource group, and then load the group
+        ResourceGroupManager& rgm = ResourceGroupManager::getSingleton();
+
+        // Pick a new resource group so Q3Shader parser is correctly registered
+        rgm.setWorldResourceGroupName("BSPWorld");
+
+        rgm.setCustomStagesForResourceGroup("BSPWorld", mSceneMgr->estimateWorldGeometry("maps/oa_rpg3dm2.bsp"));
+        rgm.initialiseResourceGroup("BSPWorld");
+        rgm.loadResourceGroup("BSPWorld");
+        // one would register a ResourceGroupListener for this, if we were not to call it right away
+        mSceneMgr->setWorldGeometry("maps/oa_rpg3dm2.bsp");
+
+        mTrayMgr->hideLoadingBar();
+    }
+
+    void unloadResources() override
+    {
+        // unload the map so we don't interfere with subsequent samples
+        ResourceGroupManager& rgm = ResourceGroupManager::getSingleton();
+        rgm.clearResourceGroup(rgm.getWorldResourceGroupName());
+        rgm.setWorldResourceGroupName(ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
+    }
+
     void setupContent() override
     {
+
 #ifdef OGRE_BUILD_COMPONENT_RTSHADERSYSTEM
         // add integrated depth shadows
         auto& rtShaderGen = RTShader::ShaderGenerator::getSingleton();
@@ -44,6 +84,7 @@ protected:
         // update scheme for FFP supporting rendersystems
         MaterialManager::getSingleton().setActiveScheme(mViewport->getMaterialScheme());
 #endif
+        loadResources();
         // set background and some fog
         mViewport->setBackgroundColour(ColourValue(1.0f, 1.0f, 0.8f));
         mSceneMgr->setFog(Ogre::FOG_LINEAR, ColourValue(1.0f, 1.0f, 0.8f), 0, 15, 100);
